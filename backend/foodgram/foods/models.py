@@ -1,6 +1,5 @@
-from tkinter import CASCADE
 from django.contrib.auth import get_user_model
-from validators import SlugValidator, min_amount
+from .validators import SlugValidator, min_amount
 from django.db import models
 
 
@@ -32,37 +31,35 @@ class Recipe(models.Model):
     name = models.CharField(max_length=200)
     text = models.TextField()
     ingredients = models.ManyToManyField(Ingredient,
-                                         through='RecipeIngredients',
-                                         related_name='recipes')
-    tag = models.ManyToManyField(Tag, through='RecipeTags',
-                                 related_name='recipes')
+                                         through='RecipeIngredients')
+    tag = models.ManyToManyField(Tag, through='RecipeTags')
     image = models.ImageField(
         upload_to='recipes',
         null=False,
         default=None
     )
     cooking_time = models.IntegerField(validators=[min_amount])
-    
+
     def __str__(self):
         return self.name
 
 
 class RecipeIngredients(models.Model):
     ingredient_id = models.ForeignKey(Ingredient,
-                                      on_delete=CASCADE,
+                                      on_delete=models.CASCADE,
                                       related_name='recipes')
     recipe_id = models.ForeignKey(Recipe,
-                                  on_delete=CASCADE,
-                                  related_name='ingredients')
+                                  on_delete=models.CASCADE,
+                                  related_name='ingredients_num')
     amount = models.IntegerField(validators=[min_amount])
 
 
 class RecipeTags(models.Model):
     tag_id = models.ForeignKey(Tag,
-                               on_delete=CASCADE,
+                               on_delete=models.CASCADE,
                                related_name='recipes')
     recipe_id = models.ForeignKey(Recipe,
-                                  on_delete=CASCADE,
+                                  on_delete=models.CASCADE,
                                   related_name='tags')
 
 
@@ -70,14 +67,14 @@ class Follow(models.Model):
     user = models.ForeignKey(
         User,
         related_name='follower',
-        on_delete=CASCADE
+        on_delete=models.CASCADE
     )
     author = models.ForeignKey(
         User,
         related_name='following',
         on_delete=models.CASCADE
     )
-    
+
     class Meta():
         models.UniqueConstraint(
             fields=['user', 'author'],
@@ -96,7 +93,7 @@ class Favorite(models.Model):
         related_name='favorites',
         on_delete=models.CASCADE
     )
-    
+
     class Meta():
         models.UniqueConstraint(
             fields=['user', 'recipe'],
@@ -115,7 +112,7 @@ class Cart(models.Model):
         related_name='cart',
         on_delete=models.CASCADE
     )
-    
+
     class Meta():
         models.UniqueConstraint(
             fields=['user', 'recipe'],

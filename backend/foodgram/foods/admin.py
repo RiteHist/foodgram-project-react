@@ -1,21 +1,21 @@
 from django.contrib import admin
-import models
+from . import models
 
 
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name',
-                    'measurment_unit')
-    list_filter = ('name')
+                    'measurement_unit')
+    list_filter = ('name',)
     empty_value_display = '-пусто-'
-    
+
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name',
                     'color',
                     'slug')
-    list_filter = ('name')
+    list_filter = ('name',)
     empty_value_display = '-пусто-'
-    
+
 
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name',
@@ -24,7 +24,7 @@ class RecipeAdmin(admin.ModelAdmin):
                    'author',
                    'tag')
     empty_value_display = '-пусто-'
-    
+
 
 class RecipeIngredientsAdmin(admin.ModelAdmin):
     list_display = ('ingredient_id',
@@ -32,12 +32,12 @@ class RecipeIngredientsAdmin(admin.ModelAdmin):
                     'amount')
     list_filter = ('recipe_id',
                    'ingredient_id')
-    
+
 
 class RecipeTagsAdmin(admin.ModelAdmin):
     list_display = ('tag_id',
                     'recipe_id')
-    
+
 
 class FollowAdmin(admin.ModelAdmin):
     list_display = ('user',
@@ -62,4 +62,3 @@ admin.site.register(models.RecipeTags, RecipeTagsAdmin)
 admin.site.register(models.Follow, FollowAdmin)
 admin.site.register(models.Favorite, FavoriteAdmin)
 admin.site.register(models.Cart, CartAdmin)
-    
