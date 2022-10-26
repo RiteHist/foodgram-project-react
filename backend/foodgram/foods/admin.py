@@ -39,11 +39,6 @@ class RecipeTagsAdmin(admin.ModelAdmin):
                     'recipe_id')
 
 
-class FollowAdmin(admin.ModelAdmin):
-    list_display = ('user',
-                    'author')
-
-
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user',
                     'recipe')
@@ -59,6 +54,5 @@ admin.site.register(models.Tag, TagAdmin)
 admin.site.register(models.Recipe, RecipeAdmin)
 admin.site.register(models.RecipeIngredients, RecipeIngredientsAdmin)
 admin.site.register(models.RecipeTags, RecipeTagsAdmin)
-admin.site.register(models.Follow, FollowAdmin)
 admin.site.register(models.Favorite, FavoriteAdmin)
 admin.site.register(models.Cart, CartAdmin)

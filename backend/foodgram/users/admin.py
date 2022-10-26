@@ -8,4 +8,10 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = ('username',)
 
 
+class FollowAdmin(admin.ModelAdmin):
+    list_display = ('user',
+                    'author')
+
+
 admin.site.register(models.User, UserAdmin)
+admin.site.register(models.Follow, FollowAdmin)
