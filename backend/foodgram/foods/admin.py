@@ -22,7 +22,7 @@ class RecipeAdmin(admin.ModelAdmin):
                     'author')
     list_filter = ('name',
                    'author',
-                   'tag')
+                   'tags')
     empty_value_display = '-пусто-'
 
 

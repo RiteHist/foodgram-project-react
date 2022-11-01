@@ -1,8 +1,9 @@
 from rest_framework import viewsets
 from rest_framework import filters
 
-from foods.models import Ingredient, Tag
+from foods.models import Ingredient, Tag, Recipe
 from .serializers import IngredientSerializer, TagSerializer
+from .serializers import RecipeGetSerializer
 
 
 class CustomSearchFilter(filters.SearchFilter):
@@ -21,3 +22,12 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return RecipeGetSerializer
+        return RecipeGetSerializer  # TODO change to serializer for POST

@@ -1,8 +1,23 @@
+import base64
 from rest_framework import serializers
-from foods.models import Ingredient, Tag
+from django.core.files.base import ContentFile
+from django.contrib.auth.models import AnonymousUser
+from foods.models import Ingredient, Tag, Recipe
+from users.serializers import CustomUserSerializer
+
+
+class Base64ImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            imgformat, imgstr = data.split(';base64,')
+            ext = imgformat.split('/')[-1]
+            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+
+        return super().to_internal_value(data)
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для GET запросов на модель Ingredient."""
 
     class Meta:
         model = Ingredient
@@ -12,7 +27,27 @@ class IngredientSerializer(serializers.ModelSerializer):
                   )
 
 
+class RecipeIngredientSerializer(serializers.ModelSerializer):
+    """Вложенный сериализатор модели Ingredient для GET запросов рецепта."""
+    amount = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Ingredient
+        fields = ('id',
+                  'name',
+                  'measurement_unit',
+                  'amount'
+                  )
+
+    def get_amount(self, obj):
+        recipe = self.context.get('recipe')
+        amount = (recipe.ingredients_num.
+                  filter(ingredient_id__exact=obj.id).first().amount)
+        return amount
+
+
 class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор для GET запросов модели Tag."""
 
     class Meta:
         model = Tag
@@ -21,3 +56,55 @@ class TagSerializer(serializers.ModelSerializer):
                   'color',
                   'slug'
                   )
+
+
+class RecipeGetSerializer(serializers.ModelSerializer):
+    """Сериализатор для GET запросов на модель Recipe."""
+    ingredients = serializers.SerializerMethodField()
+    author = CustomUserSerializer(read_only=True)
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
+    tags = TagSerializer(many=True, read_only=True)
+    image = Base64ImageField(allow_null=True)
+
+    class Meta:
+        model = Recipe
+        fields = ('id',
+                  'tags',
+                  'author',
+                  'ingredients',
+                  'is_favorited',
+                  'is_in_shopping_cart',
+                  'name',
+                  'image',
+                  'text',
+                  'cooking_time'
+                  )
+
+    def get_is_favorited(self, obj):
+        request_user = self.context.get('request').user
+        if type(request_user) == AnonymousUser:
+            return False
+        is_favorited = (request_user.favorites.
+                        filter(recipe__exact=obj).exists())
+        return is_favorited
+
+    def get_is_in_shopping_cart(self, obj):
+        request_user = self.context.get('request').user
+        if type(request_user) == AnonymousUser:
+            return False
+        in_shopping_cart = request_user.cart.filter(recipe__exact=obj).exists()
+        return in_shopping_cart
+
+    def get_ingredients(self, obj):
+        ingredients = obj.ingredients
+        """
+        Добавление в контекст объекта Recipe для последующего
+        получения поля amount.
+        """
+        serializer_context = {'request': self.context.get('request'),
+                              'recipe': obj}
+        serializer = RecipeIngredientSerializer(ingredients,
+                                                context=serializer_context,
+                                                many=True)
+        return serializer.data

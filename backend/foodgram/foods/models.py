@@ -32,9 +32,9 @@ class Recipe(models.Model):
     text = models.TextField()
     ingredients = models.ManyToManyField(Ingredient,
                                          through='RecipeIngredients')
-    tag = models.ManyToManyField(Tag, through='RecipeTags')
+    tags = models.ManyToManyField(Tag, through='RecipeTags')
     image = models.ImageField(
-        upload_to='recipes',
+        upload_to='recipes/images/',
         null=False,
         default=None
     )
@@ -60,7 +60,7 @@ class RecipeTags(models.Model):
                                related_name='recipes')
     recipe_id = models.ForeignKey(Recipe,
                                   on_delete=models.CASCADE,
-                                  related_name='tags')
+                                  related_name='tags_list')
 
 
 class Favorite(models.Model):
