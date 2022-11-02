@@ -3,7 +3,7 @@ from rest_framework import filters
 
 from foods.models import Ingredient, Tag, Recipe
 from .serializers import IngredientSerializer, TagSerializer
-from .serializers import RecipeGetSerializer
+from .serializers import RecipeGetSerializer, RecipePostSerializer
 
 
 class CustomSearchFilter(filters.SearchFilter):
@@ -30,4 +30,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
             return RecipeGetSerializer
-        return RecipeGetSerializer  # TODO change to serializer for POST
+        return RecipePostSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)

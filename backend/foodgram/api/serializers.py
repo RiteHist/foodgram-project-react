@@ -2,7 +2,7 @@ import base64
 from rest_framework import serializers
 from django.core.files.base import ContentFile
 from django.contrib.auth.models import AnonymousUser
-from foods.models import Ingredient, Tag, Recipe
+from foods.models import Ingredient, Tag, Recipe, RecipeIngredients
 from users.serializers import CustomUserSerializer
 
 
@@ -44,6 +44,14 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         amount = (recipe.ingredients_num.
                   filter(ingredient_id__exact=obj.id).first().amount)
         return amount
+
+
+class RecipeIngredientPostSerializer(serializers.ModelSerializer):
+    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+
+    class Meta:
+        model = RecipeIngredients
+        fields = ('id', 'amount')
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -108,3 +116,35 @@ class RecipeGetSerializer(serializers.ModelSerializer):
                                                 context=serializer_context,
                                                 many=True)
         return serializer.data
+
+
+class RecipePostSerializer(serializers.ModelSerializer):
+    ingredients = RecipeIngredientPostSerializer(many=True, write_only=True)
+    image = Base64ImageField()
+    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
+                                              many=True)
+
+    class Meta:
+        model = Recipe
+        fields = ('ingredients',
+                  'tags',
+                  'image',
+                  'name',
+                  'text',
+                  'cooking_time'
+                  )
+
+    def create(self, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        recipe = Recipe.objects.create(**validated_data)
+        recipe.tags.set(tags)
+        recipe.save()
+        for ingredient in ingredients:
+            RecipeIngredients.objects.create(
+                recipe_id=recipe,
+                ingredient_id=ingredient.get('id'),
+                amount=ingredient.get('amount')
+            )
+
+        return recipe

@@ -43,6 +43,12 @@ class Recipe(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta():
+        models.UniqueConstraint(
+            fields=['author', 'name'],
+            name='unique_recipe_pair'
+        )
+
 
 class RecipeIngredients(models.Model):
     ingredient_id = models.ForeignKey(Ingredient,
