@@ -166,13 +166,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                                             False, instance=instance)
 
     def to_representation(self, instance):
-        serializer_context = {'request': self.context.get('request'),
-                              'recipe': instance}
-        res = super().to_representation(instance)
-        res['ingredients'] = RecipeIngredientSerializer(
-            instance.ingredients,
-            context=serializer_context,
-            many=True
-        ).data
-
+        instance = Recipe.objects.get(pk=instance.pk)
+        res = RecipeGetSerializer(instance,
+                                  context=self.context).data
         return res

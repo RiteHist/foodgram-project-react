@@ -1,9 +1,11 @@
 from rest_framework import viewsets
 from rest_framework import filters
+from django_filters import rest_framework
 
 from foods.models import Ingredient, Tag, Recipe
 from .serializers import IngredientSerializer, TagSerializer
 from .serializers import RecipeGetSerializer, RecipeWriteSerializer
+from .filters import RecipeFilter
 
 
 class CustomSearchFilter(filters.SearchFilter):
@@ -26,6 +28,8 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
+    filter_backends = [rest_framework.DjangoFilterBackend]
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
