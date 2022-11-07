@@ -16,7 +16,7 @@ class Ingredient(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(max_length=200, unique=True)
-    color = models.CharField(max_length=7, unique=True)
+    color = models.CharField(max_length=7)
     slug = models.SlugField(max_length=200, unique=True,
                             validators=[SlugValidator()])
 
@@ -58,6 +58,12 @@ class RecipeIngredients(models.Model):
                                   on_delete=models.CASCADE,
                                   related_name='ingredients_num')
     amount = models.IntegerField(validators=[min_amount])
+
+    class Meta():
+        models.UniqueConstraint(
+            fields=['ingredient_id', 'recipe_id'],
+            name='unique_recipeingredients_pair'
+        )
 
 
 class RecipeTags(models.Model):
