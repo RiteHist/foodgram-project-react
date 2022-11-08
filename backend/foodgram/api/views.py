@@ -5,7 +5,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from django_filters import rest_framework
 
-from foods.models import Ingredient, Tag, Recipe, Favorite
+from foods.models import Ingredient, Tag, Recipe, Favorite, Cart
 from .serializers import IngredientSerializer, TagSerializer
 from .serializers import RecipeGetSerializer, RecipeWriteSerializer
 from .serializers import RecipeShortSerialzier
@@ -52,23 +52,29 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save(author=self.request.user)
 
-    @action(detail=True, methods=['post', 'delete'])
-    def favorite(self, request, pk):
+    def post_or_delete(self, request, pk, model):
         user = request.user
         recipe = Recipe.objects.get(pk=pk)
-        favorite_exists = (Favorite.objects.
-                           filter(recipe=recipe, user=user).exists())
+        object_exists = model.objects.filter(recipe=recipe, user=user).exists()
         if request.method == 'POST':
             same_user = recipe.author == user
-            if favorite_exists or same_user:
+            if object_exists or same_user:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
 
-            Favorite.objects.create(recipe=recipe, user=user)
+            model.objects.create(recipe=recipe, user=user)
             serializer = RecipeShortSerialzier(recipe)
             return Response(serializer.data)
 
-        if not favorite_exists:
+        if not object_exists:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        Favorite.objects.filter(recipe=recipe, user=user).delete()
+        model.objects.filter(recipe=recipe, user=user).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['post', 'delete'])
+    def favorite(self, request, pk):
+        return self.post_or_delete(request, pk, Favorite)
+
+    @action(detail=True, methods=['post', 'delete'])
+    def shopping_cart(self, request, pk):
+        return self.post_or_delete(request, pk, Cart)
