@@ -1,5 +1,6 @@
 import base64
 from rest_framework import serializers
+from django.forms import ValidationError
 from django.core.files.base import ContentFile
 from django.contrib.auth.models import AnonymousUser
 from foods.models import Ingredient, Tag, Recipe, RecipeIngredients
@@ -134,6 +135,16 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                   'cooking_time'
                   )
 
+        validators = []
+
+    def validate(self, attrs):
+        user = self.context.get('request').user
+        name = attrs['name']
+        recipe_exists = user.recipes.filter(name=name).exists()
+        if recipe_exists:
+            raise ValidationError('Нельзя создать одинаковые рецепты.')
+        return attrs
+
     def create_or_update_recipe(self, validated_data,
                                 create: bool, instance=None):
         """Создание или обновление рецепта."""
@@ -170,3 +181,14 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         res = RecipeGetSerializer(instance,
                                   context=self.context).data
         return res
+
+
+class RecipeShortSerialzier(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = ('id',
+                  'name',
+                  'image',
+                  'cooking_time'
+                  )
