@@ -116,7 +116,7 @@ STATIC_URL = '/backend_static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'backend_static')
 
-MEDIA_URL = '/backend_media/'
+MEDIA_URL = 'http://localhost/backend_media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'backend_media')
 
 AUTH_USER_MODEL = 'users.User'
@@ -135,6 +135,7 @@ REST_FRAMEWORK = {
 DJOSER = {
     'PERMISSIONS': {
         'user_list': ['rest_framework.permissions.AllowAny'],
+        'user': ['rest_framework.permissions.AllowAny']
     },
     'SERIALIZERS': {'user': 'users.serializers.CustomUserSerializer', },
     'HIDE_USERS': False

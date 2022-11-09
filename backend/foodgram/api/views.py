@@ -4,12 +4,14 @@ from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from django_filters import rest_framework
+from django.shortcuts import get_object_or_404
 
 from foods.models import Ingredient, Tag, Recipe, Favorite, Cart
 from .serializers import IngredientSerializer, TagSerializer
 from .serializers import RecipeGetSerializer, RecipeWriteSerializer
 from .serializers import RecipeShortSerialzier
 from .filters import RecipeFilter
+from .permissions import AnonReadOnlyOrOwnerOrAdmin
 
 
 class CustomSearchFilter(filters.SearchFilter):
@@ -27,12 +29,14 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
     filter_backends = [CustomSearchFilter]
     search_fields = ['^name']
+    permission_classes = (AnonReadOnlyOrOwnerOrAdmin,)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
+    permission_classes = (AnonReadOnlyOrOwnerOrAdmin,)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -40,6 +44,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = [rest_framework.DjangoFilterBackend]
     filterset_class = RecipeFilter
     pagination_class = CustomPaginator
+    permission_classes = (AnonReadOnlyOrOwnerOrAdmin,)
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
@@ -54,7 +59,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def post_or_delete(self, request, pk, model):
         user = request.user
-        recipe = Recipe.objects.get(pk=pk)
+        recipe = get_object_or_404(Recipe, pk=pk)
         object_exists = model.objects.filter(recipe=recipe, user=user).exists()
         if request.method == 'POST':
             same_user = recipe.author == user

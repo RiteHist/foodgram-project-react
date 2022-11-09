@@ -39,6 +39,7 @@ class Recipe(models.Model):
         default=None
     )
     cooking_time = models.IntegerField(validators=[min_amount])
+    pub_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
@@ -48,6 +49,7 @@ class Recipe(models.Model):
             fields=['author', 'name'],
             name='unique_recipe_pair'
         )
+        ordering = ['-pub_date']
 
 
 class RecipeIngredients(models.Model):
