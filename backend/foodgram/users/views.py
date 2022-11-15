@@ -49,7 +49,7 @@ class CustomUserViewSet(UserViewSet):
             serializer = FollowSerializer(queryset,
                                           many=True,
                                           context={'request': request})
-            return Response(serializer.data)
+            return self.get_paginated_response(serializer.data)
 
         serializer = FollowSerializer(page,
                                       many=True,
