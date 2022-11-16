@@ -18,8 +18,14 @@ class TagAdmin(admin.ModelAdmin):
 
 
 class RecipeAdmin(admin.ModelAdmin):
+    def favorite_count(self, obj):
+        return models.Favorite.objects.filter(recipe=obj).count()
+
+    favorite_count.short_description = 'Добавлено в избранное'
     list_display = ('name',
-                    'author')
+                    'author',
+                    'pub_date',
+                    'favorite_count')
     list_filter = ('name',
                    'author',
                    'tags')

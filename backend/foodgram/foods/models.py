@@ -13,6 +13,10 @@ class Ingredient(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
+
 
 class Tag(models.Model):
     name = models.CharField(max_length=200, unique=True)
@@ -22,6 +26,10 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.slug
+
+    class Meta:
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
 
 
 class Recipe(models.Model):
@@ -50,6 +58,8 @@ class Recipe(models.Model):
             name='unique_recipe_pair'
         )
         ordering = ['-pub_date']
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
 
 
 class RecipeIngredients(models.Model):
@@ -66,6 +76,8 @@ class RecipeIngredients(models.Model):
             fields=['ingredient_id', 'recipe_id'],
             name='unique_recipeingredients_pair'
         )
+        verbose_name = 'Рецепты и ингредиенты'
+        verbose_name_plural = verbose_name
 
 
 class RecipeTags(models.Model):
@@ -75,6 +87,10 @@ class RecipeTags(models.Model):
     recipe_id = models.ForeignKey(Recipe,
                                   on_delete=models.CASCADE,
                                   related_name='tags_list')
+
+    class Meta:
+        verbose_name = 'Рецепты и теги'
+        verbose_name_plural = verbose_name
 
 
 class Favorite(models.Model):
@@ -94,6 +110,8 @@ class Favorite(models.Model):
             fields=['user', 'recipe'],
             name='unique_favorite_pair'
         )
+        verbose_name = 'Избранное'
+        verbose_name_plural = verbose_name
 
 
 class Cart(models.Model):
@@ -113,3 +131,5 @@ class Cart(models.Model):
             fields=['user', 'recipe'],
             name='unique_cart_pair'
         )
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Список покупок'
