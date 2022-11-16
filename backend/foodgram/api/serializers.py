@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django.forms import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from drf_extra_fields.fields import Base64ImageField
@@ -41,6 +40,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientPostSerializer(serializers.ModelSerializer):
+    """Вложенный сериализатор ингредиентов для POST запросов рецептов."""
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
 
     class Meta:
@@ -113,6 +113,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для POST и PATCH запросов рецептов."""
     ingredients = RecipeIngredientPostSerializer(many=True, write_only=True)
     image = Base64ImageField()
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
@@ -127,16 +128,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                   'text',
                   'cooking_time'
                   )
-
-        validators = []
-
-    def validate(self, attrs):
-        user = self.context.get('request').user
-        name = attrs['name']
-        recipe_exists = user.recipes.filter(name=name).exists()
-        if recipe_exists:
-            raise ValidationError('Нельзя создать одинаковые рецепты.')
-        return attrs
 
     def create_or_update_recipe(self, validated_data,
                                 create: bool, instance=None):
@@ -177,6 +168,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
 
 class RecipeShortSerialzier(serializers.ModelSerializer):
+    """Сериализатор для отображения краткой информации о рецепте."""
 
     class Meta:
         model = Recipe
@@ -188,6 +180,7 @@ class RecipeShortSerialzier(serializers.ModelSerializer):
 
 
 class FollowSerializer(CustomUserSerializer):
+    """Сериализатор для подписок."""
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 

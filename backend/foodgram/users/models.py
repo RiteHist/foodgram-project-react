@@ -3,6 +3,7 @@ from django.db import models
 
 
 class User(AbstractUser):
+    """Модель пользователя."""
     email = models.EmailField(unique=True, max_length=254)
     username = models.CharField(unique=True, max_length=150)
     first_name = models.CharField(max_length=150)
@@ -17,6 +18,7 @@ class User(AbstractUser):
 
 
 class Follow(models.Model):
+    """Модель элемента подписки."""
     user = models.ForeignKey(
         User,
         related_name='follower',

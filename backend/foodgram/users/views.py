@@ -13,10 +13,12 @@ User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
+    """Вьюсет для модели User"""
     pagination_class = CustomPaginator
 
     @action(detail=True, methods=['post', 'delete'])
     def subscribe(self, request, id):
+        """Подписка на автора."""
         current_user = request.user
         user_to_follow = get_object_or_404(User, pk=id)
         same_user = current_user == user_to_follow
@@ -41,6 +43,7 @@ class CustomUserViewSet(UserViewSet):
 
     @action(detail=False, pagination_class=CustomPaginator)
     def subscriptions(self, request):
+        """Получение списка подписок."""
         current_user = request.user
         author_ids = current_user.follower.values_list('author', flat=True)
         queryset = User.objects.filter(pk__in=author_ids)

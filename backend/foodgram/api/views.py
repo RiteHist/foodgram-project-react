@@ -27,6 +27,7 @@ class CustomPaginator(PageNumberPagination):
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет для модели Ingredient."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
@@ -36,6 +37,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет для модели Tag."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
@@ -43,6 +45,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модеи Recipe."""
     queryset = Recipe.objects.all()
     filter_backends = [rest_framework.DjangoFilterBackend]
     filterset_class = RecipeFilter
@@ -61,6 +64,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     def post_or_delete(self, request, pk, model, to_fav: bool):
+        """
+        Вспомогательный метод для создания либо
+        удаления избранного/элементов списка покупок.
+        """
         user = request.user
         recipe = get_object_or_404(Recipe, pk=pk)
         object_exists = model.objects.filter(recipe=recipe, user=user).exists()
@@ -72,7 +79,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                      ' свои рецепты в избранное'},
                                     status=status.HTTP_400_BAD_REQUEST)
             if object_exists:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+                return Response({'errors': 'Этот рецепт уже добавлен'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
             model.objects.create(recipe=recipe, user=user)
             serializer = RecipeShortSerialzier(recipe)
@@ -94,6 +102,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False)
     def download_shopping_cart(self, request):
+        """Скачивание списка покупок."""
         text = 'Спиосок покупок:'
         current_user = request.user
         ingredients = RecipeIngredients.objects.filter(
