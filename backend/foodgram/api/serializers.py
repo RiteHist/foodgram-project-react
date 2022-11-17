@@ -1,9 +1,11 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from drf_extra_fields.fields import Base64ImageField
 from foods.models import Ingredient, Tag, Recipe, RecipeIngredients
 from users.serializers import CustomUserSerializer
+from users.models import Follow
 
 
 User = get_user_model()
@@ -144,13 +146,11 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
              filter(recipe_id__exact=instance).delete())
         instance.tags.set(tags)
         instance.save()
-        for ingredient in ingredients:
-            """Создание связей с ингредиентами."""
-            RecipeIngredients.objects.create(
-                recipe_id=instance,
-                ingredient_id=ingredient.get('id'),
-                amount=ingredient.get('amount')
-            )
+        objects = (RecipeIngredients(recipe_id=instance,
+                                     ingredient_id=ingredient.get('id'),
+                                     amount=ingredient.get('amount'))
+                   for ingredient in ingredients)
+        RecipeIngredients.objects.bulk_create(objects)
         return instance
 
     def create(self, validated_data):
@@ -179,7 +179,7 @@ class RecipeShortSerialzier(serializers.ModelSerializer):
                   )
 
 
-class FollowSerializer(CustomUserSerializer):
+class FollowReturnSerializer(CustomUserSerializer):
     """Сериализатор для подписок."""
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
@@ -210,3 +210,30 @@ class FollowSerializer(CustomUserSerializer):
 
     def get_recipes_count(self, obj):
         return Recipe.objects.filter(author=obj).count()
+
+
+class FollowSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Follow
+        fields = ('user',
+                  'author')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=('user', 'author')
+            )
+        ]
+
+    def validate(self, data):
+        user = self.context['request'].user
+        author = data['author']
+        if user == author:
+            raise serializers.ValidationError(
+                "Нельзя подписатья на самого себя")
+        return data
+
+    def to_representation(self, instance):
+        res = FollowReturnSerializer(instance.author,
+                                     context=self.context).data
+        return res

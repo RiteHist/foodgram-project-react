@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
-from .validators import SlugValidator, min_amount
 from django.db import models
+from django.db.models import Sum
+from .validators import SlugValidator, min_amount
 
 
 User = get_user_model()
@@ -78,6 +79,20 @@ class RecipeIngredients(models.Model):
                                   on_delete=models.CASCADE,
                                   related_name='ingredients_num')
     amount = models.IntegerField(validators=[min_amount])
+
+    def form_shopping_list(user):
+        text = 'Список покупок:'
+        ingredients = RecipeIngredients.objects.filter(
+            recipe_id__cart__user=user
+            ).values('ingredient_id__name',
+                     'ingredient_id__measurement_unit'
+                     ).annotate(amount=Sum('amount'))
+        for i in ingredients:
+            text += (
+                f"\n{i['ingredient_id__name']} - "
+                f"{i['amount']} {i['ingredient_id__measurement_unit']}"
+            )
+        return text
 
     class Meta():
         models.UniqueConstraint(

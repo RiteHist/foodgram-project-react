@@ -1,3 +1,4 @@
+from rest_framework import filters
 from django_filters import FilterSet, NumberFilter
 from django_filters.rest_framework import BooleanFilter
 from django_filters.rest_framework import ModelMultipleChoiceFilter
@@ -31,3 +32,7 @@ class RecipeFilter(FilterSet):
         user = self.request.user
         recipes = Cart.objects.filter(user=user).values('recipe')
         return queryset.filter(id__in=recipes)
+
+
+class CustomSearchFilter(filters.SearchFilter):
+    search_param = 'name'

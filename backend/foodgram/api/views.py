@@ -1,11 +1,8 @@
 from rest_framework import viewsets, status
-from rest_framework import filters
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from django_filters import rest_framework
 from django.shortcuts import get_object_or_404
-from django.db.models import Sum
 from django.http import HttpResponse
 
 from foods.models import Ingredient, Tag, Recipe, Favorite
@@ -13,17 +10,9 @@ from foods.models import Cart, RecipeIngredients
 from .serializers import IngredientSerializer, TagSerializer
 from .serializers import RecipeGetSerializer, RecipeWriteSerializer
 from .serializers import RecipeShortSerialzier
-from .filters import RecipeFilter
+from .filters import RecipeFilter, CustomSearchFilter
 from .permissions import AnonReadOnlyOrOwnerOrAdmin
-
-
-class CustomSearchFilter(filters.SearchFilter):
-    search_param = 'name'
-
-
-class CustomPaginator(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'limit'
+from .paginator import CustomPaginator
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -103,21 +92,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=False)
     def download_shopping_cart(self, request):
         """Скачивание списка покупок."""
-        text = 'Спиосок покупок:'
         current_user = request.user
-        ingredients = RecipeIngredients.objects.filter(
-            recipe_id__cart__user=current_user
-            ).values('ingredient_id__name',
-                     'ingredient_id__measurement_unit'
-                     ).annotate(amount=Sum('amount'))
-        for i in ingredients:
-            text += (
-                f"\n{i['ingredient_id__name']} - "
-                f"{i['amount']} {i['ingredient_id__measurement_unit']}"
-            )
-
+        text = RecipeIngredients.form_shopping_list(user=current_user)
         file_name = 'shopping_list.txt'
         response = HttpResponse(content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename={file_name}'
+        response['Content-Disposition'] = f'attachment; filename="{file_name}"'
         response.writelines(text)
         return response
