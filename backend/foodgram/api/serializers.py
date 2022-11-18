@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from drf_extra_fields.fields import Base64ImageField
@@ -218,19 +217,25 @@ class FollowSerializer(serializers.ModelSerializer):
         model = Follow
         fields = ('user',
                   'author')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Follow.objects.all(),
-                fields=('user', 'author')
-            )
-        ]
+        validators = []
 
     def validate(self, data):
         user = self.context['request'].user
         author = data['author']
+        follow = user.follower.filter(author=author)
+        if self.context['request'].method == 'DELETE':
+            if not follow.exists():
+                raise serializers.ValidationError(
+                    'Такой подписки не существует.'
+                )
+            return data
         if user == author:
             raise serializers.ValidationError(
                 "Нельзя подписатья на самого себя")
+        if follow.exists():
+            raise serializers.ValidationError(
+                'Такая подписка уже существует.'
+            )
         return data
 
     def to_representation(self, instance):

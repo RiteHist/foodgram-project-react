@@ -21,18 +21,14 @@ class CustomUserViewSet(UserViewSet):
         """Подписка на автора."""
         current_user = request.user
         user_follow = get_object_or_404(User, pk=id)
-        if request.method == 'DELETE':
-            follow = (current_user.follower.
-                      filter(author=user_follow))
-            if follow.exists():
-                follow.delete()
-                return Response(status.HTTP_204_NO_CONTENT)
-            return Response(status.HTTP_400_BAD_REQUEST)
-
         seriailizer = FollowSerializer(data={'user': current_user.pk,
                                              'author': user_follow.pk},
                                        context={'request': request})
         if seriailizer.is_valid(raise_exception=True):
+            if request.method == 'DELETE':
+                current_user.follower.filter(author=user_follow).delete()
+                return Response(status.HTTP_204_NO_CONTENT)
+
             seriailizer.save()
             return Response(seriailizer.data)
 
