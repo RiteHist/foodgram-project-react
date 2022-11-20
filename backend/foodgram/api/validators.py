@@ -1,6 +1,6 @@
+from foods.models import Favorite
 from rest_framework import serializers
 from users.models import Follow
-from foods.models import Favorite
 
 
 def check_unique_and_exists(context, model, data):

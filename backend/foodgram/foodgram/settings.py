@@ -66,7 +66,7 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 CORS_ALLOWED_ORIGINS = [
     'http://62.84.126.121',
     'http://localhost'
-] 
+]
 
 # Database
 

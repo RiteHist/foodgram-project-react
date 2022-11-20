@@ -1,18 +1,18 @@
-from rest_framework import viewsets, status
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django_filters import rest_framework
+from foods.models import (Cart, Favorite, Ingredient, Recipe,
+                          RecipeIngredients, Tag)
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django_filters import rest_framework
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
 
-from foods.models import Ingredient, Tag, Recipe, Favorite
-from foods.models import Cart, RecipeIngredients
-from .serializers import IngredientSerializer, TagSerializer
-from .serializers import RecipeGetSerializer, RecipeWriteSerializer
-from .serializers import FavoriteSerializer, CartSerializer
-from .filters import RecipeFilter, CustomSearchFilter
-from .permissions import AnonReadOnlyOrOwnerOrAdmin
+from .filters import CustomSearchFilter, RecipeFilter
 from .paginator import CustomPaginator
+from .permissions import AnonReadOnlyOrOwnerOrAdmin
+from .serializers import (CartSerializer, FavoriteSerializer,
+                          IngredientSerializer, RecipeGetSerializer,
+                          RecipeWriteSerializer, TagSerializer)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -79,6 +79,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
             serializer.save()
             return Response(serializer.data)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post', 'delete'])
     def favorite(self, request, pk):

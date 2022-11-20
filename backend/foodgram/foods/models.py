@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Sum
-from .validators import SlugValidator, min_amount
 
+from .validators import SlugValidator, min_amount
 
 User = get_user_model()
 
@@ -84,9 +84,9 @@ class RecipeIngredients(models.Model):
         text = 'Список покупок:'
         ingredients = RecipeIngredients.objects.filter(
             recipe_id__cart__user=user
-            ).values('ingredient_id__name',
-                     'ingredient_id__measurement_unit'
-                     ).annotate(amount=Sum('amount'))
+        ).values('ingredient_id__name',
+                 'ingredient_id__measurement_unit'
+                 ).annotate(amount=Sum('amount'))
         for i in ingredients:
             text += (
                 f"\n{i['ingredient_id__name']} - "

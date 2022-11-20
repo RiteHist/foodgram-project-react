@@ -1,13 +1,13 @@
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from drf_extra_fields.fields import Base64ImageField
-from foods.models import Ingredient, Tag, Recipe, RecipeIngredients
-from foods.models import Cart, Favorite
-from users.serializers import CustomUserSerializer
+from foods.models import (Cart, Favorite, Ingredient, Recipe,
+                          RecipeIngredients, Tag)
+from rest_framework import serializers
 from users.models import Follow
-from .validators import check_unique_and_exists
+from users.serializers import CustomUserSerializer
 
+from .validators import check_unique_and_exists
 
 User = get_user_model()
 
@@ -37,9 +37,8 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
     def get_amount(self, obj):
         recipe = self.context.get('recipe')
-        amount = (recipe.ingredients_num.
-                  filter(ingredient_id__exact=obj.id).first().amount)
-        return amount
+        return (recipe.ingredients_num.
+                filter(ingredient_id__exact=obj.id).first().amount)
 
 
 class RecipeIngredientPostSerializer(serializers.ModelSerializer):
@@ -90,16 +89,14 @@ class RecipeGetSerializer(serializers.ModelSerializer):
         request_user = self.context.get('request').user
         if type(request_user) == AnonymousUser:
             return False
-        is_favorited = (request_user.favorites.
-                        filter(recipe__exact=obj).exists())
-        return is_favorited
+        return (request_user.favorites.
+                filter(recipe__exact=obj).exists())
 
     def get_is_in_shopping_cart(self, obj):
         request_user = self.context.get('request').user
         if type(request_user) == AnonymousUser:
             return False
-        in_shopping_cart = request_user.cart.filter(recipe__exact=obj).exists()
-        return in_shopping_cart
+        return request_user.cart.filter(recipe__exact=obj).exists()
 
     def get_ingredients(self, obj):
         ingredients = obj.ingredients
@@ -163,9 +160,8 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         instance = Recipe.objects.get(pk=instance.pk)
-        res = RecipeGetSerializer(instance,
-                                  context=self.context).data
-        return res
+        return RecipeGetSerializer(instance,
+                                   context=self.context).data
 
 
 class RecipeShortSerialzier(serializers.ModelSerializer):
@@ -225,9 +221,8 @@ class FollowSerializer(serializers.ModelSerializer):
         return check_unique_and_exists(self.context, Follow, data)
 
     def to_representation(self, instance):
-        res = FollowReturnSerializer(instance.author,
-                                     context=self.context).data
-        return res
+        return FollowReturnSerializer(instance.author,
+                                      context=self.context).data
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -242,9 +237,8 @@ class FavoriteSerializer(serializers.ModelSerializer):
         return check_unique_and_exists(self.context, Favorite, data)
 
     def to_representation(self, instance):
-        res = RecipeShortSerialzier(instance.recipe,
-                                    context=self.context).data
-        return res
+        return RecipeShortSerialzier(instance.recipe,
+                                     context=self.context).data
 
 
 class CartSerializer(serializers.ModelSerializer):
@@ -259,6 +253,5 @@ class CartSerializer(serializers.ModelSerializer):
         return check_unique_and_exists(self.context, Cart, data)
 
     def to_representation(self, instance):
-        res = RecipeShortSerialzier(instance.recipe,
-                                    context=self.context).data
-        return res
+        return RecipeShortSerialzier(instance.recipe,
+                                     context=self.context).data
