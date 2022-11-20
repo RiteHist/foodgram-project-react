@@ -3,8 +3,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from drf_extra_fields.fields import Base64ImageField
 from foods.models import Ingredient, Tag, Recipe, RecipeIngredients
+from foods.models import Cart, Favorite
 from users.serializers import CustomUserSerializer
 from users.models import Follow
+from .validators import check_unique_and_exists
 
 
 User = get_user_model()
@@ -220,25 +222,43 @@ class FollowSerializer(serializers.ModelSerializer):
         validators = []
 
     def validate(self, data):
-        user = self.context['request'].user
-        author = data['author']
-        follow = user.follower.filter(author=author)
-        if self.context['request'].method == 'DELETE':
-            if not follow.exists():
-                raise serializers.ValidationError(
-                    'Такой подписки не существует.'
-                )
-            return data
-        if user == author:
-            raise serializers.ValidationError(
-                "Нельзя подписатья на самого себя")
-        if follow.exists():
-            raise serializers.ValidationError(
-                'Такая подписка уже существует.'
-            )
-        return data
+        return check_unique_and_exists(self.context, Follow, data)
 
     def to_representation(self, instance):
         res = FollowReturnSerializer(instance.author,
                                      context=self.context).data
+        return res
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Favorite
+        fields = ('user',
+                  'recipe')
+        validators = []
+
+    def validate(self, data):
+        return check_unique_and_exists(self.context, Favorite, data)
+
+    def to_representation(self, instance):
+        res = RecipeShortSerialzier(instance.recipe,
+                                    context=self.context).data
+        return res
+
+
+class CartSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Cart
+        fields = ('user',
+                  'recipe')
+        validators = []
+
+    def validate(self, data):
+        return check_unique_and_exists(self.context, Cart, data)
+
+    def to_representation(self, instance):
+        res = RecipeShortSerialzier(instance.recipe,
+                                    context=self.context).data
         return res
