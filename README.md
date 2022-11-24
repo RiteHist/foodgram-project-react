@@ -1,4 +1,5 @@
 # Продуктовый помощник
+![foodgram workflow](https://github.com/RiteHist/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
 
 ## Описание
 
